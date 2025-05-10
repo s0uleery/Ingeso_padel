@@ -1,12 +1,11 @@
 // src/components/LoginForm.tsx
 import { useState, FormEvent } from "react";
-import { loginRequest } from "../services/authService";
-import { useAuth } from "../context/AuthContext";
+import { authService } from "../services/authService";
 import "../styles/LoginForm.css";
+import { useNavigate } from "react-router-dom";
 
 export const LoginPage = () => {
-  const { login } = useAuth();
-
+  const navigate = useNavigate();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -16,8 +15,21 @@ export const LoginPage = () => {
     setError("");
 
     try {
-      const { token, role } = await loginRequest({ email, password });
-      login({ email, role }, token);
+      const { name, role, id } = await authService.login(email, password);
+      localStorage.setItem("userInfo",JSON.stringify({
+        name: name,
+        role: role,
+        id: id,
+        email: email
+      }));
+      
+      if(role == "admin"){
+        navigate("/admin");
+      }
+      else{
+        navigate("/user");
+      }
+   
     } catch (err) {
       console.error("Error al iniciar sesión:", err);
       setError("Correo o contraseña incorrectos");

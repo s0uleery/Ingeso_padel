@@ -1,22 +1,27 @@
-// src/services/authService.ts
-import axios from "axios";
 
-const API_URL = "http://localhost:3000"; // Cambia esto si tu backend está en otra URL
-
-type LoginPayload = {
-  email: string;
-  password: string;
-};
+const API_URL = "http://localhost:3000";
 
 type LoginResponse = {
-  token: string;
-  role: "admin" | "socio";
+  id: string;
+  role: "admin" | "user";
   email: string;
+  name: string
 };
 
-export const loginRequest = async (
-  payload: LoginPayload
-): Promise<LoginResponse> => {
-  const response = await axios.post(`${API_URL}/auth/login`, payload);
-  return response.data;
-};
+const login = async (email: string, password: string): Promise<LoginResponse> => {
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: email,
+      password: password
+    })
+  })
+  return response.json()
+}
+
+export const authService = {
+  login
+}
