@@ -17,7 +17,8 @@ const login = async (email: string, password: string): Promise<LoginResponse> =>
     body: JSON.stringify({
       email: email,
       password: password
-    })
+    }),
+    credentials: 'include'
   })
 
   
