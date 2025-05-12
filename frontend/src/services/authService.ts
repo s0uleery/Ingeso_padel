@@ -19,7 +19,16 @@ const login = async (email: string, password: string): Promise<LoginResponse> =>
       password: password
     })
   })
-  return response.json()
+
+  
+  const data = await response.json()
+
+  if(response.ok) {
+    return data
+  }
+
+  throw new Error(data.message)
+
 }
 
 export const authService = {
