@@ -1,0 +1,70 @@
+/* Contenedor principal */
+.admin-container {
+  padding: 2rem 1rem;
+  padding-bottom: 100px; /* espacio para el BottomNav */
+  text-align: center;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* Título de bienvenida */
+.admin-welcome {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-name {
+  font-weight: bold;
+  color: #6b46c1;
+}
+
+/* Grid de botones ajustado */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem; /* reducido el espacio entre botones */
+  justify-content: center;
+  align-items: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Botones */
+.admin-card {
+  width: 100%;
+  max-width: 160px;
+  height: 90px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1rem;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.3s;
+}
+
+/* Hover y click */
+.admin-card:hover {
+  transform: scale(1.05);
+}
+
+.admin-card:active {
+  filter: brightness(85%);
+}
+
+/* Colores */
+.deportes {
+  background-color: #3b82f6; /* azul */
+}
+
+.clubes {
+  background-color: #10b981; /* verde */
+}
+
+.escuelas {
+  background-color: #f97316; /* naranja */
+}
+
+.match {
+  background-color: #6b7280; /* gris */
+}
