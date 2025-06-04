@@ -1,14 +1,21 @@
 //import { useAuth } from "../context/AuthContext";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import "../styles/UserPage.css";
+import BottomNav from "../components/BottomNav";
 
 export const UserPage = () => {
-  //const { usuario, logout } = useAuth();
   const { email } =  JSON.parse( localStorage.getItem('userInfo')||'')
+
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    navigate("/reservas");
+  }, [navigate]);
 
   return (
     <div style={{ padding: "2rem" }}>
-      <h1>Bienvenido Socio</h1>
-      <p>Correo: {email}</p>
-      <button onClick={undefined}>Cerrar sesión</button>
+    <BottomNav isAdmin={false} />
     </div>
   );
 };
