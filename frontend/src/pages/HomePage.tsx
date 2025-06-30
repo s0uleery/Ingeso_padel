@@ -2,6 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/HomePage.css';
+//import BottomNav from "../components/BottomNav";
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const HomePage: React.FC = () => {
         <button onClick={() => navigate('/login')}>Iniciar Sesión</button>
         <button onClick={() => navigate('/register')}>Registrarse</button>
       </div>
-      <div className="title-box">Padel Ucenin</div>
+      <div className="title-box">Ucenin Padel</div>
     </div>
   );
 };

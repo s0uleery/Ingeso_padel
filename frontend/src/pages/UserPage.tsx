@@ -1,12 +1,9 @@
-//import { useAuth } from "../context/AuthContext";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/UserPage.css";
 import BottomNav from "../components/BottomNav";
 
 export const UserPage = () => {
-  const { email } =  JSON.parse( localStorage.getItem('userInfo')||'')
-
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -14,8 +11,8 @@ export const UserPage = () => {
   }, [navigate]);
 
   return (
-    <div style={{ padding: "2rem" }}>
-    <BottomNav isAdmin={false} />
-    </div>
+    <>
+      <BottomNav isAdmin={false} />
+    </>
   );
 };
