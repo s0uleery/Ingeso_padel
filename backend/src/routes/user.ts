@@ -51,9 +51,9 @@ router.post("/register", async (req,res) => {
         return;
     }
 
-    query = 'INSERT INTO public."User" (rut, password, email, name) VALUES ($1,$2,$3,$4)'
+    query = 'INSERT INTO public."User" (rut, password, email, name, balance) VALUES ($1,$2,$3,$4,$5)'
     const hash = bcrypt.hashSync(password, 10)
-    values = [rut, hash, email, name]
+    values = [rut, hash, email, name, 0]
         
     try {
         await pool.query(query,values)
@@ -68,5 +68,57 @@ router.post("/register", async (req,res) => {
     }
 });
 
+router.put("/updateBalance", async (req, res) => {
+    const { rut, balance } = req.body;
+
+    if (isNaN(balance)) {
+        res.status(400).json({
+            message: "El monto debe ser un número válido"
+        });
+        return;
+    }
+
+    const newAmount = parseFloat(balance);
+
+    if (newAmount <= 0) {
+        res.status(400).json({
+            message: "Debes ingresar un monto mayor a 0"
+        });
+
+        return;
+    }
+
+    try {
+        const userResult = await pool.query(`SELECT balance FROM public."User" WHERE rut = $1`,[rut]);
+
+        if (userResult.rowCount === 0) {
+            res.status(404).json({ message: "Usuario no encontrado" });
+            return;
+        }
+
+        const currentBalance = parseFloat(userResult.rows[0].balance);
+        const finalBalance = currentBalance + newAmount;
+
+        console.log(`DEBUG - actual: ${currentBalance}, nuevo: ${newAmount}, final: ${finalBalance}`);
+
+        if (finalBalance > 100000) {
+            res.status(400).json({
+                message: `No se puede añadir ${newAmount}. El saldo final (${finalBalance}) excede el máximo permitido de 100.000.`
+            });
+            return;
+        }
+
+        await pool.query(`UPDATE public."User" SET balance = $1 WHERE rut = $2`,[finalBalance, rut]);
+
+        res.status(200).json({
+            message: "Saldo actualizado con éxito",
+            balance: finalBalance
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.json({ message: "Error al actualizar el saldo" });
+    }
+});
 
 export default router;
