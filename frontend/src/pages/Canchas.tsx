@@ -5,19 +5,19 @@ import "../styles/Canchas.css";
 import {
   createCourt,
   deleteCourt,
-  fetchCourtsByAdmin,
-} from "../services/userService";
+  getCourts
+} from "../services/courtService";
 
 interface Court {
   id?: number;
-  numero: number;
-  costo: number;
-  maxJugadores: number;
+  number: number;
+  cost: number;
+  max_players: number;
 }
 
 export const Canchas = () => {
   const [canchas, setCanchas] = useState<Court[]>([]);
-  const [nueva, setNueva] = useState<Court>({ numero: 0, costo: 0, maxJugadores: 2 });
+  const [nueva, setNueva] = useState<Court>({ number: 0, cost: 0, max_players: 2 });
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
 
@@ -25,7 +25,7 @@ export const Canchas = () => {
 
   const cargarCanchas = async () => {
     try {
-      const result = await fetchCourtsByAdmin(rut);
+      const result = await getCourts(rut);
       if (result.message) {
         setError(result.message);
       } else if (result.courts) {
@@ -44,7 +44,7 @@ export const Canchas = () => {
     const { name, value } = e.target;
     setNueva({
       ...nueva,
-      [name]: name === "numero" || name === "costo" || name === "maxJugadores" ? Number(value) : value,
+      [name]: name === "number" || name === "cost" || name === "max_players" ? Number(value) : value,
     });
   };
 
@@ -53,15 +53,15 @@ export const Canchas = () => {
     setError("");
     setMensaje("");
 
-    if (!nueva.numero || nueva.costo < 0 || ![2, 4].includes(nueva.maxJugadores)) {
+    if (!nueva.number || nueva.cost < 0 || ![2, 4].includes(nueva.max_players)) {
       setError("Todos los campos son obligatorios y deben ser válidos");
       return;
     }
 
     try {
-      const result = await createCourt(rut, nueva.numero, nueva.costo);
+      const result = await createCourt(rut, nueva.number, nueva.cost, nueva.max_players);
       setMensaje(result.message);
-      setNueva({ numero: 0, costo: 0, maxJugadores: 2 });
+      setNueva({ number: 0, cost: 0, max_players: 2 });
       cargarCanchas();
     } catch (e) {
       setError("Error al crear la cancha");
@@ -89,10 +89,10 @@ export const Canchas = () => {
           <div className="fila-formulario">
             <label>N° de Cancha:</label>
             <input
-              name="numero"
+              name="number"
               type="number"
               min="1"
-              value={nueva.numero || ""}
+              value={nueva.number}
               onChange={handleChange}
               required
             />
@@ -101,10 +101,10 @@ export const Canchas = () => {
           <div className="fila-formulario">
             <label>Costo:</label>
             <input
-              name="costo"
+              name="cost"
               type="number"
               min="0"
-              value={nueva.costo || ""}
+              value={nueva.cost}
               onChange={handleChange}
               required
               onWheel={(e) => e.currentTarget.blur()}
@@ -114,8 +114,8 @@ export const Canchas = () => {
           <div className="fila-formulario">
             <label>Máx. Jugadores:</label>
             <select
-              name="maxJugadores"
-              value={nueva.maxJugadores}
+              name="max_players"
+              value={nueva.max_players}
               onChange={handleChange}
               required
             >
@@ -132,21 +132,20 @@ export const Canchas = () => {
 
         <h3>Lista de Canchas</h3>
         <ul className="lista-canchas">
-          {canchas.map((c) => (
-            <li key={c.id}>
-              <strong>Cancha #{c.numero}</strong> - Costo: ${c.costo} | Máx Jugadores: {c.maxJugadores}
-              {" "}
-              {c.id && (
+          {canchas
+            .filter((c) => typeof c.id === "number")
+            .map((c) => (
+              <li key={c.id}>
+                <strong>Cancha #{c.number}</strong> - Costo: ${c.cost} | Máx Jugadores: {c.max_players}
                 <button className="btn-eliminar" onClick={() => handleDelete(c.id!)}>
                   Eliminar
                 </button>
-              )}
-            </li>
+              </li>
           ))}
         </ul>
       </div>
 
-      <BottomNav isAdmin={true} />
+      <BottomNav/>
     </>
   );
 };

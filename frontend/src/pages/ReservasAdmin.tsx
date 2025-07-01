@@ -1,48 +1,78 @@
 // src/pages/ReservasAdmin.tsx
-import "../styles/ReservasAdmin.css";
-import BottomNav from "../components/BottomNav";
 import { useEffect, useState } from "react";
-//import { fetchReservas, Reserva } from "../services/bookingService";
+import BottomNav from "../components/BottomNav";
+import { Booking, getAllBookings, deleteBooking } from "../services/bookingService";
+import "../styles/ReservasAdmin.css";
 
 export const ReservasAdmin = () => {
-  const [reservas, setReservas] = useState<Reserva[]>([]);
+  const [reservas, setReservas] = useState<Booking[]>([]);
+  const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const cargarReservas = async () => {
-      try {
-        const data = await fetchReservas();
-        setReservas(data);
-      } catch (e) {
-        setError("No se pudieron cargar las reservas");
-      }
-    };
+  const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+  const rut = userInfo?.rut || "";
 
+  const cargarReservas = async () => {
+    try {
+      const respuesta = await getAllBookings(rut);
+      if (respuesta.history) {
+        setReservas(respuesta.history);
+      } else {
+        setError(respuesta.message || "No se pudo cargar el historial");
+      }
+    } catch (e) {
+      console.error(e);
+      setError("Error al cargar reservas");
+    }
+  };
+
+  useEffect(() => {
     cargarReservas();
   }, []);
 
+  const handleEliminar = async (id: number) => {
+    try {
+      const respuesta = await deleteBooking(id, rut);
+      setMensaje(respuesta.message);
+      cargarReservas();
+    } catch (e) {
+      console.error(e);
+      setError("Error al eliminar reserva");
+    }
+  };
+
   return (
     <>
-      <div className="container">
-        <h2 className="welcome">Historial Reservas</h2>
+      <div className="admin-reservas-container">
+        <h2>Historial de Reservas</h2>
 
+        {mensaje && <p className="mensaje">{mensaje}</p>}
         {error && <p className="error">{error}</p>}
 
-        <ul className="lista-reservas">
-          {reservas.map((r) => (
-            <li key={r.numero}>
-              <strong>Reserva #{r.numero}</strong><br />
-              Cancha: {r.cancha} | Fecha: {r.fecha}<br />
-              Horario: {r.horaInicio} - {r.horaFin}<br />
-              Equipamiento: {r.usaEquipamiento === "si" ? "Sí" : "No"}<br />
-              Detalle Equipamiento: {r.detalleEquipamiento}<br />
-              Boleta: {r.boleta}<br />
-              RUT Reserva: {r.rut}
-            </li>
-          ))}
+        <ul className="reserva-lista">
+          {reservas.length === 0 ? (
+            <p>No hay reservas registradas.</p>
+          ) : (
+            reservas.map((reserva) => (
+              <li key={reserva.id} className="reserva-item">
+                <p>
+                  <strong>Usuario:</strong> {reserva.usuario} ({reserva.rut})<br />
+                  <strong>Cancha:</strong> {reserva.court_number}<br />
+                  <strong>Fecha:</strong> {reserva.date}<br />
+                  <strong>Horario:</strong> {reserva.start_time} - {reserva.finish_time}<br />
+                  <strong>Costo:</strong> ${reserva.total_cost}
+                </p>
+                <button className="btn-eliminar" onClick={() => handleEliminar(reserva.id)}>
+                  Eliminar
+                </button>
+              </li>
+            ))
+          )}
         </ul>
       </div>
-      <BottomNav isAdmin={true} />
+      <BottomNav/>
     </>
   );
 };
+
+export default ReservasAdmin;

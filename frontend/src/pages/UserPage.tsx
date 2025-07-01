@@ -12,7 +12,7 @@ export const UserPage = () => {
 
   return (
     <>
-      <BottomNav isAdmin={false} />
+      <BottomNav />
     </>
   );
 };

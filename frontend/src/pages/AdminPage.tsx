@@ -33,7 +33,7 @@ export const AdminPage = () => {
           </button>
         </div>
       </div>
-      <BottomNav isAdmin={true} />
+      <BottomNav/>
     </>
   );
 };

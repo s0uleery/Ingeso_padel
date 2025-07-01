@@ -1,28 +1,36 @@
+// src/pages/ReservasPage.tsx
 import "../styles/ReservasPage.css";
 import BottomNav from "../components/BottomNav";
 import ReservaModal from "../components/ReservaModal";
 import { useState, useEffect } from "react";
-//import { fetchReservasByUser, createReserva, deleteReserva, confirmarReserva, Reserva } from "../services/bookingService";
+import {
+  createBooking,
+  getMyBookings,
+  deleteBooking,
+  Booking,
+} from "../services/bookingService";
 
 const ReservasPage = () => {
   const [modo, setModo] = useState<"reservas" | "modificar">("reservas");
   const [tabReservas, setTabReservas] = useState<"activas" | "porPagar" | "porConfirmar">("activas");
   const [tabModificar, setTabModificar] = useState<"activas" | "canceladas">("activas");
   const [showModal, setShowModal] = useState(false);
-  const [reservas, setReservas] = useState<Reserva[]>([]);
+  const [reservas, setReservas] = useState<Booking[]>([]);
   const [userInfo, setUserInfo] = useState<{ rut?: string; role?: string }>({});
 
   useEffect(() => {
     const storedUser = localStorage.getItem("userInfo");
     const userData = storedUser ? JSON.parse(storedUser) : null;
 
-    if (userData && userData.rut) {
+    if (userData?.rut) {
       setUserInfo(userData);
 
       const obtenerReservas = async () => {
         try {
-          const data = await fetchReservasByUser(userData.rut);
-          setReservas(data);
+          const response = await getMyBookings(userData.rut);
+          if (response?.bookings) {
+            setReservas(response.bookings);
+          }
         } catch (error) {
           console.error("Error al obtener reservas", error);
         }
@@ -34,40 +42,31 @@ const ReservasPage = () => {
 
   const isAdmin = userInfo?.role === "admin";
 
-  const handleDeleteReserva = async (numero: number) => {
+  const handleDeleteReserva = async (id: number) => {
     try {
-      await deleteReserva(numero);
-      setReservas(reservas.filter(reserva => reserva.numero !== numero));
+      await deleteBooking(id, userInfo.rut!);
+      setReservas(reservas.filter((reserva) => reserva.id !== id));
     } catch (error) {
       console.error("Error al eliminar reserva", error);
     }
   };
 
-  const handleConfirmReserva = async (numero: number) => {
-    try {
-      await confirmarReserva(numero);
-      setReservas(prevReservas =>
-        prevReservas.map(reserva =>
-          reserva.numero === numero ? { ...reserva, estado: "confirmada" } : reserva
-        )
-      );
-    } catch (error) {
-      console.error("Error al confirmar reserva", error);
-    }
-  };
-
-  const handleCrearReserva = async (nuevaReserva: Omit<Reserva, "rut">) => {
+  const handleCrearReserva = async (reservaParcial: Omit<Booking, "id" | "total_cost">) => {
     try {
       if (!userInfo.rut) {
-        console.error("Error: No se encontró el usuario en la sesión");
+        console.error("Usuario no autenticado");
         return;
       }
 
-      const reservaConUsuario = { ...nuevaReserva, rut: userInfo.rut };
-      await createReserva(reservaConUsuario);
-      setReservas([...reservas, reservaConUsuario]);
+      const nuevaReserva = { ...reservaParcial, rut: userInfo.rut };
+      const response = await createBooking(nuevaReserva as Booking);
+
+      if (response?.message === "Reserva creada exitosamente") {
+        const recarga = await getMyBookings(userInfo.rut);
+        setReservas(recarga.bookings || []);
+      }
     } catch (error) {
-      console.error("Error al crear la reserva", error);
+      console.error("Error al crear reserva", error);
     }
   };
 
@@ -113,10 +112,11 @@ const ReservasPage = () => {
         <div className="reservas-content">
           {reservas.length > 0 ? (
             reservas.map((reserva) => (
-              <div key={reserva.numero} className="reserva-card">
-                <p>Cancha {reserva.cancha} - {reserva.fecha} ({reserva.horaInicio} - {reserva.horaFin})</p>
-                <button onClick={() => handleConfirmReserva(reserva.numero)}>Confirmar</button>
-                <button onClick={() => handleDeleteReserva(reserva.numero)}>Eliminar</button>
+              <div key={reserva.id} className="reserva-card">
+                <p>
+                  Cancha {reserva.court_number} - {reserva.date} ({reserva.start_time} - {reserva.finish_time})
+                </p>
+                <button onClick={() => handleDeleteReserva(reserva.id!)}>Eliminar</button>
               </div>
             ))
           ) : (
@@ -129,8 +129,13 @@ const ReservasPage = () => {
         </button>
       </div>
 
-      {showModal && <ReservaModal onClose={() => setShowModal(false)} onCreateReserva={handleCrearReserva} />}
-      <BottomNav isAdmin={isAdmin} />
+      {showModal && (
+        <ReservaModal
+          onClose={() => setShowModal(false)}
+          onCreateReserva={handleCrearReserva}
+        />
+      )}
+      <BottomNav/>
     </>
   );
 };
